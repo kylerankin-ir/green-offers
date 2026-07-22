@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Green Offers — Solar, batteries, heat pumps & EV charging</title>
+<meta name="description" content="Green Offers helps UK homeowners get free quotes on solar panels, battery storage, heat pumps and EV charging — with vetted installers. Free, no obligation." />
+
+<!-- ============================================================
+     API: this site uses Cloudflare Pages Functions in the repo:
+       functions/api/lead.js     → POST, forwards to LeadByte SOLARLEADS
+       functions/api/address.js  → GET, proxies the GoAddress lookup
+     These deploy with the site (Git) and run on preview AND production,
+     so the postcode lookup works on pages.dev previews too. No separate
+     Worker or route needed.
+     ============================================================ -->
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+<style>
+  :root{
+    --ink:#0c211a;
+    --ink-soft:#485a52;
+    --brand:#12805a;
+    --brand-deep:#0a5a3d;
+    --brand-bright:#29a86f;
+    --accent:#f6a821;
+    --accent-soft:#fdeecd;
+    --surface:#f5faf6;
+    --mint:#e7f4ec;
+    --card:#ffffff;
+    --line:#e0ebe4;
+    --shadow:0 1px 2px rgba(12,33,26,.05),0 12px 32px -12px rgba(12,33,26,.18);
+    --shadow-sm:0 1px 2px rgba(12,33,26,.06),0 6px 16px -10px rgba(12,33,26,.2);
+    --radius:18px;
+    --maxw:1140px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;color:var(--ink);background:var(--surface);line-height:1.55;-webkit-font-smoothing:antialiased}
+  h1,h2,h3,.display{font-family:'Sora',system-ui,sans-serif;letter-spacing:-.02em;line-height:1.06}
+  a{color:inherit;text-decoration:none}
+  img{max-width:100%;display:block}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+  .eyebrow{font-size:.78rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--brand);display:inline-flex;align-items:center;gap:8px}
+  .eyebrow::before{content:"";width:22px;height:2px;background:var(--accent);display:inline-block;border-radius:2px}
+
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;font-size:1rem;padding:14px 24px;border-radius:999px;border:1.5px solid transparent;cursor:pointer;transition:transform .15s ease,box-shadow .2s ease,background .2s ease;white-space:nowrap}
+  .btn-primary{background:var(--brand);color:#fff;box-shadow:var(--shadow-sm)}
+  .btn-primary:hover{background:var(--brand-deep);transform:translateY(-1px)}
+  .btn-accent{background:var(--accent);color:#3a2a00}
+  .btn-accent:hover{background:#ffc046;transform:translateY(-1px)}
+  .btn-ghost{background:#fff;color:var(--ink);border-color:var(--line)}
+  .btn-ghost:hover{border-color:var(--brand);color:var(--brand)}
+  .btn-lg{padding:16px 30px;font-size:1.05rem}
+  :focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:6px}
+
+  /* header */
+  header{position:sticky;top:0;z-index:50;background:rgba(245,250,246,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+  .nav{display:flex;align-items:center;justify-content:space-between;height:74px}
+  .logo{display:inline-flex;align-items:center;gap:10px;font-family:'Sora',sans-serif;font-weight:800;font-size:1.4rem;letter-spacing:-.03em;color:var(--ink)}
+  .logo .mark{width:32px;height:32px;border-radius:10px;background:var(--brand);display:grid;place-items:center;color:var(--accent);box-shadow:var(--shadow-sm)}
+  .logo b{color:var(--brand)}
+  .nav-links{display:flex;align-items:center;gap:30px}
+  .nav-links a{font-weight:500;color:var(--ink-soft);font-size:.97rem;transition:color .15s}
+  .nav-links a:hover{color:var(--brand)}
+  .nav-cta{display:flex;align-items:center;gap:14px}
+  .menu-btn{display:none;background:none;border:1.5px solid var(--line);border-radius:10px;width:44px;height:44px;cursor:pointer}
+  .menu-btn span{display:block;width:18px;height:2px;background:var(--ink);margin:4px auto;border-radius:2px}
+
+  /* hero */
+  .hero{position:relative;overflow:hidden;padding:64px 0 76px}
+  .hero::before{content:"";position:absolute;inset:0;z-index:0;background:radial-gradient(820px 460px at 82% -10%,rgba(41,168,111,.16),transparent 60%),radial-gradient(680px 400px at 4% 112%,rgba(246,168,33,.12),transparent 60%)}
+  .hero-grid{position:relative;z-index:1;display:grid;grid-template-columns:1fr 1.02fr;gap:52px;align-items:center}
+  .hero h1{font-size:clamp(2.4rem,5vw,3.7rem);font-weight:800;margin:18px 0 18px}
+  .hero h1 em{font-style:normal;color:var(--brand);position:relative;white-space:nowrap}
+  .hero h1 em::after{content:"";position:absolute;left:0;right:0;bottom:.05em;height:.16em;background:var(--accent);opacity:.5;border-radius:4px;z-index:-1}
+  .hero p.lead{font-size:1.16rem;color:var(--ink-soft);max-width:32ch;margin-bottom:28px}
+  .trust-row{display:flex;gap:20px;flex-wrap:wrap}
+  .trust-row span{display:inline-flex;align-items:center;gap:8px;font-size:.92rem;font-weight:500;color:var(--ink-soft)}
+  .trust-row svg{flex:none;color:var(--brand-bright)}
+
+  /* wizard */
+  .quote-wizard{background:var(--card);border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);padding:26px;position:relative;scroll-margin-top:90px}
+  .qw-head{margin-bottom:18px}
+  .qw-progress{height:6px;background:var(--mint);border-radius:999px;overflow:hidden}
+  .qw-bar{display:block;height:100%;width:25%;background:linear-gradient(90deg,var(--brand),var(--brand-bright));border-radius:999px;transition:width .35s ease}
+  .qw-meta{display:flex;justify-content:space-between;align-items:center;margin-top:9px;font-size:.82rem;color:var(--ink-soft);font-weight:500}
+  .qw-savehint{color:var(--brand);font-weight:600}
+  .qw-step{display:none}
+  .qw-step.is-active{display:block;animation:qwIn .35s ease}
+  @keyframes qwIn{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:none}}
+  @keyframes pop{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+  .qw-title{font-size:1.4rem;font-weight:700;margin-bottom:5px}
+  .qw-sub{color:var(--ink-soft);font-size:.96rem;margin-bottom:18px}
+
+  /* product tiles */
+  .qw-products{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:8px}
+  .ptile{position:relative;display:flex;flex-direction:column;gap:9px;align-items:flex-start;text-align:left;padding:16px;border:1.5px solid var(--line);border-radius:14px;background:#fff;cursor:pointer;transition:border .15s,background .15s,transform .1s;font-family:inherit}
+  .ptile:hover{border-color:var(--brand-bright)}
+  .ptile .pic{width:40px;height:40px;border-radius:11px;background:var(--mint);display:grid;place-items:center;color:var(--brand);transition:.15s}
+  .ptile .pname{font-weight:700;font-size:1rem}
+  .ptile .pcheck{position:absolute;top:12px;right:12px;width:22px;height:22px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;color:#fff;transition:.15s}
+  .ptile.selected{border-color:var(--brand);background:linear-gradient(180deg,rgba(41,168,111,.07),rgba(41,168,111,.02))}
+  .ptile.selected .pic{background:var(--brand);color:#fff}
+  .ptile.selected .pcheck{background:var(--brand);border-color:var(--brand)}
+  .qw-hint{font-size:.82rem;color:var(--ink-soft);margin:4px 0 16px;text-align:center}
+
+  /* fields */
+  .qw-field{margin-bottom:15px}
+  .qw-field.row2{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+  .qw-field.row2 .qw-field{margin-bottom:0}
+  .qw-field label{display:block;font-size:.85rem;font-weight:600;margin-bottom:6px}
+  .qw-opt{font-weight:400;color:var(--ink-soft)}
+  .qw-field input,.qw-field select{width:100%;padding:14px 15px;border:1.5px solid var(--line);border-radius:12px;font-family:inherit;font-size:1.02rem;color:var(--ink);background:#fff;transition:border .15s,box-shadow .15s}
+  .qw-field input:focus,.qw-field select:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(18,128,90,.14)}
+  .qw-field input.err,.qw-field select.err{border-color:#d6453c;box-shadow:0 0 0 3px rgba(214,69,60,.1)}
+  .qw-lookup{display:flex;gap:10px;flex-wrap:wrap}
+  .qw-lookup input{flex:1;min-width:55%}
+  .qw-lookup .btn{flex:none;padding:13px 18px}
+  .qw-addr-wrap{margin-top:14px}
+  .qw-lookup-msg{font-size:.83rem;color:var(--ink-soft);margin-top:10px}
+  .qw-next{width:100%}
+  .qw-actions{display:flex;align-items:center;gap:12px;margin-top:6px}
+  .qw-actions .btn{flex:1}
+  .qw-back{background:none;border:none;color:var(--ink-soft);font-family:inherit;font-size:.95rem;font-weight:600;cursor:pointer;padding:10px 6px;white-space:nowrap}
+  .qw-back:hover{color:var(--brand)}
+  .qw-trust{display:flex;align-items:center;justify-content:center;gap:7px;font-size:.82rem;color:var(--ink-soft);margin-top:13px}
+  .qw-trust svg{color:var(--brand-bright);flex:none}
+  .qw-branch[hidden]{display:none}
+
+  /* homeowner gate */
+  .qw-gate{display:none;background:var(--accent-soft);border:1px solid #f0d9a4;border-radius:12px;padding:16px 18px;margin:4px 0 8px;font-size:.9rem;color:#6b4e12}
+  .qw-gate.show{display:block;animation:pop .3s ease}
+  .qw-gate b{color:#5a4110}
+
+  .quote-wizard .consent{display:flex;gap:10px;align-items:flex-start;font-size:.83rem;color:var(--ink-soft);margin:4px 0 12px}
+  .quote-wizard .consent input{width:auto;margin-top:3px;flex:none}
+  .quote-wizard .err-msg{color:#c23a31;font-size:.8rem;margin-top:6px;display:none}
+  .quote-wizard .err-msg.show{display:block}
+  .partners-tip{position:relative;color:var(--brand);text-decoration:underline;text-decoration-style:dotted;text-underline-offset:2px;cursor:help;font-weight:600}
+  .partners-pop{position:absolute;left:50%;bottom:calc(100% + 9px);transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 13px;border-radius:10px;font-size:.8rem;font-weight:500;line-height:1.6;white-space:nowrap;text-align:left;box-shadow:var(--shadow);opacity:0;visibility:hidden;transition:opacity .15s;z-index:30}
+  .partners-pop::after{content:"";position:absolute;top:100%;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:var(--ink)}
+  .partners-tip:hover .partners-pop,.partners-tip:focus .partners-pop,.partners-tip:focus-within .partners-pop,.partners-tip.open .partners-pop{opacity:1;visibility:visible}
+  .qw-success{display:none;text-align:center;padding:18px 8px 8px}
+  .qw-success.show{display:block;animation:pop .4s ease}
+  .qw-success .check{width:64px;height:64px;border-radius:50%;background:var(--mint);color:var(--brand-bright);display:grid;place-items:center;margin:0 auto 16px}
+  .qw-success h3{font-size:1.45rem;margin-bottom:9px}
+  .qw-success p{color:var(--ink-soft);max-width:36ch;margin:0 auto}
+
+  /* stats */
+  .stats{background:var(--ink);color:#fff;padding:30px 0}
+  .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;text-align:center}
+  .stat .num{font-family:'Sora',sans-serif;font-weight:800;font-size:2.1rem;color:#fff;line-height:1}
+  .stat .num em{font-style:normal;color:var(--accent)}
+  .stat .lbl{font-size:.85rem;color:#9fb8ac;margin-top:7px;font-weight:500}
+
+  /* sections */
+  .section{padding:86px 0}
+  .section-head{max-width:640px;margin-bottom:44px}
+  .section-head.center{margin-left:auto;margin-right:auto;text-align:center}
+  .section-head h2{font-size:clamp(1.9rem,3.6vw,2.7rem);font-weight:700;margin:14px 0 14px}
+  .section-head p{font-size:1.1rem;color:var(--ink-soft)}
+  .band-mint{background:var(--mint)}
+
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:30px 26px}
+  .step .step-no{font-family:'Sora',sans-serif;font-weight:800;font-size:1rem;color:var(--accent);background:var(--ink);width:42px;height:42px;border-radius:12px;display:grid;place-items:center;margin-bottom:20px}
+  .step h3{font-size:1.25rem;font-weight:700;margin-bottom:9px}
+  .step p{color:var(--ink-soft);font-size:.98rem}
+
+  /* upgrade cards */
+  .up-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+  .up-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:26px 22px;transition:transform .15s,box-shadow .2s}
+  .up-card:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+  .up-card .ic{width:50px;height:50px;border-radius:13px;background:var(--mint);display:grid;place-items:center;color:var(--brand);margin-bottom:16px}
+  .up-card h3{font-size:1.18rem;font-weight:700;margin-bottom:8px}
+  .up-card p{color:var(--ink-soft);font-size:.95rem}
+
+  .why-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:22px}
+  .why{display:flex;gap:18px;align-items:flex-start;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:26px}
+  .why .ic{flex:none;width:48px;height:48px;border-radius:13px;background:var(--mint);display:grid;place-items:center;color:var(--brand)}
+  .why h3{font-size:1.15rem;font-weight:700;margin-bottom:6px}
+  .why p{color:var(--ink-soft);font-size:.97rem}
+
+  .chips{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:10px}
+  .chip{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:11px 22px;font-weight:600;color:var(--ink);font-size:1rem;box-shadow:var(--shadow-sm)}
+  .sup-note{font-size:.85rem;color:var(--ink-soft);margin-top:22px;text-align:center}
+
+  .quotes{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+  .quote{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:28px}
+  .quote .stars{color:var(--accent);letter-spacing:3px;margin-bottom:14px;font-size:1.05rem}
+  .quote p{font-size:1.02rem;margin-bottom:18px}
+  .quote .who{display:flex;align-items:center;gap:12px}
+  .quote .av{width:40px;height:40px;border-radius:50%;background:var(--brand);color:#fff;display:grid;place-items:center;font-weight:700;font-family:'Sora',sans-serif}
+  .quote .who b{font-size:.95rem}
+  .quote .who span{display:block;font-size:.82rem;color:var(--ink-soft);font-weight:400}
+
+  /* cta band */
+  .cta-band{background:linear-gradient(120deg,var(--brand-deep),var(--brand));color:#fff;border-radius:28px;padding:56px;text-align:center;position:relative;overflow:hidden}
+  .cta-band::after{content:"";position:absolute;width:340px;height:340px;border-radius:50%;background:radial-gradient(circle,rgba(246,168,33,.24),transparent 70%);top:-120px;right:-80px}
+  .cta-band h2{font-size:clamp(1.8rem,3.4vw,2.5rem);font-weight:800;margin-bottom:14px;position:relative}
+  .cta-band p{color:rgba(255,255,255,.85);font-size:1.1rem;max-width:46ch;margin:0 auto 28px;position:relative}
+
+  /* faq */
+  .faq{max-width:780px;margin:0 auto}
+  .faq-item{border-bottom:1px solid var(--line)}
+  .faq-q{width:100%;background:none;border:none;text-align:left;padding:22px 4px;font-family:'Sora',sans-serif;font-weight:600;font-size:1.1rem;color:var(--ink);cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:20px}
+  .faq-q .pm{flex:none;width:30px;height:30px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;transition:.2s;color:var(--brand)}
+  .faq-item.open .pm{background:var(--brand);color:#fff;border-color:var(--brand);transform:rotate(45deg)}
+  .faq-a{max-height:0;overflow:hidden;transition:max-height .3s ease}
+  .faq-a p{padding:0 4px 22px;color:var(--ink-soft)}
+
+  /* footer */
+  footer{background:var(--ink);color:#c3d4cb;padding:60px 0 30px;margin-top:0}
+  .foot-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:36px;margin-bottom:40px}
+  footer .logo{color:#fff;margin-bottom:16px}
+  footer .logo b{color:var(--accent)}
+  .foot-about{font-size:.92rem;color:#93a99e;max-width:34ch}
+  .foot-col h4{color:#fff;font-size:.82rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:16px;font-family:'Plus Jakarta Sans',sans-serif}
+  .foot-col a{display:block;color:#a3b8ae;font-size:.94rem;margin-bottom:11px}
+  .foot-col a:hover{color:#fff}
+  .foot-bottom{border-top:1px solid rgba(255,255,255,.1);padding-top:26px;display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;font-size:.82rem;color:#849a8f}
+  .foot-bottom .reg{max-width:64ch;line-height:1.6}
+
+  /* legal view */
+  .page-hero{background:linear-gradient(120deg,var(--brand-deep),var(--brand));color:#fff;padding:56px 0 52px;position:relative;overflow:hidden}
+  .page-hero::after{content:"";position:absolute;width:320px;height:320px;border-radius:50%;background:radial-gradient(circle,rgba(246,168,33,.26),transparent 70%);top:-130px;right:-60px}
+  .legal-eyebrow{font-size:.78rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);position:relative}
+  .page-hero h1{font-size:clamp(2rem,4.5vw,3rem);font-weight:800;margin:12px 0 10px;position:relative}
+  .page-hero p{color:rgba(255,255,255,.82);position:relative;max-width:60ch}
+  .crumb{font-size:.9rem;color:rgba(255,255,255,.7);margin-bottom:18px;position:relative}
+  .crumb a{color:rgba(255,255,255,.92);cursor:pointer}
+  .legal-wrap{max-width:var(--maxw);margin:0 auto;padding:56px 24px 20px}
+  article.legal{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:44px;box-shadow:var(--shadow);max-width:860px;margin:0 auto}
+  article.legal .updated{display:inline-block;font-size:.82rem;font-weight:600;color:var(--brand);background:var(--mint);padding:6px 13px;border-radius:999px;margin-bottom:26px}
+  article.legal h2{font-size:1.4rem;font-weight:700;margin:36px 0 12px;scroll-margin-top:96px}
+  article.legal h2:first-of-type{margin-top:0}
+  article.legal h3{font-size:1.08rem;font-weight:700;margin:22px 0 8px}
+  article.legal p{margin-bottom:14px;color:#2b3c34}
+  article.legal ul{margin:0 0 16px 0;padding-left:0;list-style:none}
+  article.legal ul li{position:relative;padding-left:24px;margin-bottom:8px;color:#2b3c34}
+  article.legal ul li::before{content:"";position:absolute;left:5px;top:10px;width:6px;height:6px;border-radius:50%;background:var(--accent)}
+  article.legal a{color:var(--brand);text-decoration:underline}
+  .contact-card{background:var(--mint);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin:16px 0}
+  .contact-card p{margin-bottom:6px;color:#2b3c34}
+  .note{font-size:.92rem;color:var(--ink-soft)}
+
+  .reveal{opacity:0;transform:translateY(18px);transition:opacity .6s ease,transform .6s ease}
+  .reveal.in{opacity:1;transform:none}
+
+  @media(max-width:940px){
+    .hero-grid{grid-template-columns:1fr;gap:36px}
+    .hero p.lead{max-width:none}
+    .stats-grid{grid-template-columns:repeat(2,1fr);gap:26px}
+    .steps,.quotes{grid-template-columns:1fr}
+    .up-grid{grid-template-columns:1fr 1fr}
+    .why-grid{grid-template-columns:1fr}
+    .foot-grid{grid-template-columns:1fr 1fr}
+    .nav-links,.nav-cta .btn{display:none}
+    .menu-btn{display:block}
+    .nav-links.open{display:flex;position:absolute;top:74px;left:0;right:0;flex-direction:column;background:var(--surface);border-bottom:1px solid var(--line);padding:18px 24px}
+    .nav-links.open a{padding:12px 0;border-bottom:1px solid var(--line)}
+    .cta-band{padding:42px 26px}
+  }
+  @media(max-width:560px){
+    .section{padding:60px 0}
+    .qw-products,.up-grid{grid-template-columns:1fr}
+    .qw-field.row2{grid-template-columns:1fr}
+    .foot-grid{grid-template-columns:1fr}
+    article.legal{padding:28px 20px}
+  }
+  @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}.reveal{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a href="#top" class="logo" aria-label="Green Offers home">
+      <span class="mark" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C7 7 6 11 8 15a6 6 0 0 0 8 0c2-4 1-8-4-13Z"/></svg></span>
+      Green <b>Offers</b>
+    </a>
+    <nav class="nav-links" id="navLinks">
+      <a href="#how">How it works</a>
+      <a href="#upgrades">Upgrades</a>
+      <a href="#why">Why us</a>
+      <a href="#faq">FAQs</a>
+    </nav>
+    <div class="nav-cta">
+      <a href="#quote" class="btn btn-primary">Get my free quote</a>
+      <button class="menu-btn" id="menuBtn" aria-label="Open menu" aria-expanded="false"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+</header>
+
+<main id="view-home">
+<a id="top"></a>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div class="hero-copy reveal">
+      <span class="eyebrow">Green home upgrades, made simple</span>
+      <h1>Cut your bills with a <em>greener</em> home.</h1>
+      <p class="lead">Free quotes on solar, batteries, heat pumps and EV charging — from vetted installers, with a real advisor to guide you.</p>
+      <div class="trust-row">
+        <span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m5 13 4 4L19 7"/></svg> 100% free</span>
+        <span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m5 13 4 4L19 7"/></svg> No obligation</span>
+        <span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m5 13 4 4L19 7"/></svg> Vetted installers</span>
+      </div>
+    </div>
+
+    <!-- WIZARD -->
+    <div class="quote-wizard reveal" id="quote">
+      <div class="qw-head">
+        <div class="qw-progress" aria-hidden="true"><span class="qw-bar" id="qwBar"></span></div>
+        <div class="qw-meta"><span id="qwStepLabel">Step 1 of 4</span><span class="qw-savehint">Free &amp; no obligation</span></div>
+      </div>
+
+      <form id="quoteForm" novalidate>
+        <!-- STEP 1: products -->
+        <div class="qw-step is-active" data-step="1">
+          <h3 class="qw-title">What are you interested in?</h3>
+          <p class="qw-sub">Choose one or more — we'll tailor your quote.</p>
+          <div class="qw-products">
+            <button type="button" class="ptile" data-product="solar">
+              <span class="pcheck"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m5 13 4 4L19 7"/></svg></span>
+              <span class="pic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg></span>
+              <span class="pname">Solar panels</span>
+            </button>
+            <button type="button" class="ptile" data-product="battery">
+              <span class="pcheck"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m5 13 4 4L19 7"/></svg></span>
+              <span class="pic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="16" height="10" rx="2"/><path d="M22 10v4M10 10l-2 4h3l-2 3" stroke-linejoin="round"/></svg></span>
+              <span class="pname">Battery storage</span>
+            </button>
+            <button type="button" class="ptile" data-product="heatpump">
+              <span class="pcheck"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m5 13 4 4L19 7"/></svg></span>
+              <span class="pic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="12" cy="12" r="4"/><path d="M12 8v8M8 12h8"/></svg></span>
+              <span class="pname">Heat pump</span>
+            </button>
+            <button type="button" class="ptile" data-product="ev">
+              <span class="pcheck"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m5 13 4 4L19 7"/></svg></span>
+              <span class="pic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 11l1.5-4.5A2 2 0 0 1 8.4 5h7.2a2 2 0 0 1 1.9 1.5L19 11v6a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1v-1H8v1a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1Z"/><path d="M7 14h.01M17 14h.01"/></svg></span>
+              <span class="pname">EV charger</span>
+            </button>
+          </div>
+          <p class="qw-hint" id="qwProdHint" hidden>Please pick at least one.</p>
+          <button type="button" class="btn btn-accent btn-lg qw-next" data-next="2" style="margin-top:10px">Continue →</button>
+          <p class="qw-trust"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Your details are safe · Takes under a minute</p>
+        </div>
+
+        <!-- STEP 2: postcode -->
+        <div class="qw-step" data-step="2">
+          <h3 class="qw-title">Where's the property?</h3>
+          <p class="qw-sub">Enter your postcode and pick your address.</p>
+          <div class="qw-field">
+            <label for="qpostcode">Your postcode</label>
+            <div class="qw-lookup">
+              <input type="text" id="qpostcode" name="postcode" autocomplete="postal-code" placeholder="G1 1AA" autocapitalize="characters" />
+              <button type="button" class="btn btn-ghost" id="qwFind">Find address</button>
+            </div>
+            <div class="err-msg" data-for="qpostcode">Please enter your postcode.</div>
+            <div class="qw-addr-wrap" id="qwAddrWrap" hidden>
+              <label for="qaddress">Select your address</label>
+              <select id="qaddress"><option value="">Select your address…</option></select>
+            </div>
+            <p class="qw-lookup-msg" id="qwLookupMsg" hidden></p>
+          </div>
+          <div class="qw-actions">
+            <button type="button" class="qw-back" data-back="1">← Back</button>
+            <button type="button" class="btn btn-primary btn-lg qw-next" data-next="3">Continue</button>
+          </div>
+        </div>
+
+        <!-- STEP 3: about your home -->
+        <div class="qw-step" data-step="3">
+          <h3 class="qw-title">About your home</h3>
+          <p class="qw-sub">A few quick details so we match the right installer.</p>
+
+          <div class="qw-field">
+            <label for="qowner">Do you own your home?</label>
+            <select id="qowner" name="homeowner">
+              <option value="">Select…</option>
+              <option value="Yes">Yes, I own it</option>
+              <option value="No">No, I rent</option>
+            </select>
+            <div class="err-msg" data-for="qowner">Please let us know.</div>
+          </div>
+
+          <div class="qw-gate" id="qwGate">
+            <b>Thanks for your interest!</b> These upgrades need the property owner's go-ahead, so at the moment we can only help homeowners. If you own another property, or your landlord's on board, do come back to us.
+          </div>
+
+          <div id="qwHomeFields">
+            <div class="qw-field">
+              <label for="qproperty">Property type</label>
+              <select id="qproperty" name="property_type">
+                <option value="">Select…</option>
+                <option>Detached</option><option>Semi-detached</option><option>Terraced</option>
+                <option>Bungalow</option><option>Flat / apartment</option>
+              </select>
+              <div class="err-msg" data-for="qproperty">Please choose your property type.</div>
+            </div>
+
+            <div class="qw-field qw-branch" data-need="solar battery" hidden>
+              <label for="qbill">Typical monthly electricity bill</label>
+              <select id="qbill" name="monthly_bill">
+                <option value="">Select…</option>
+                <option>Under £80</option><option>£80–£120</option><option>£120–£180</option>
+                <option>£180–£250</option><option>Over £250</option>
+              </select>
+              <div class="err-msg" data-for="qbill">Please choose a range.</div>
+            </div>
+
+            <div class="qw-field qw-branch" data-need="heatpump" hidden>
+              <label for="qheating">Current heating type</label>
+              <select id="qheating" name="heating_type">
+                <option value="">Select…</option>
+                <option>Mains gas</option><option>Oil</option><option>LPG</option>
+                <option>Electric</option><option>Other / not sure</option>
+              </select>
+              <div class="err-msg" data-for="qheating">Please choose your heating type.</div>
+            </div>
+
+            <div class="qw-field qw-branch" data-need="ev" hidden>
+              <label for="qparking">Off-street parking (driveway/garage)?</label>
+              <select id="qparking" name="off_street_parking">
+                <option value="">Select…</option>
+                <option>Yes</option><option>No</option>
+              </select>
+              <div class="err-msg" data-for="qparking">Please let us know.</div>
+            </div>
+          </div>
+
+          <div class="qw-actions">
+            <button type="button" class="qw-back" data-back="2">← Back</button>
+            <button type="button" class="btn btn-primary btn-lg qw-next" data-next="4">Continue</button>
+          </div>
+        </div>
+
+        <!-- STEP 4: contact -->
+        <div class="qw-step" data-step="4">
+          <h3 class="qw-title">Where shall we call you?</h3>
+          <p class="qw-sub">An advisor will call with your free quote.</p>
+          <div class="qw-field row2">
+            <div class="qw-field">
+              <label for="qname">First name</label>
+              <input type="text" id="qname" name="firstname" autocomplete="given-name" placeholder="Jane" />
+              <div class="err-msg" data-for="qname">Please enter your first name.</div>
+            </div>
+            <div class="qw-field">
+              <label for="qlname">Last name</label>
+              <input type="text" id="qlname" name="lastname" autocomplete="family-name" placeholder="Smith" />
+              <div class="err-msg" data-for="qlname">Please enter your last name.</div>
+            </div>
+          </div>
+          <div class="qw-field">
+            <label for="qphone">Phone number</label>
+            <input type="tel" id="qphone" name="phone1" autocomplete="tel" placeholder="07123 456789" />
+            <div class="err-msg" data-for="qphone">Enter a valid UK phone number.</div>
+          </div>
+          <div class="qw-field">
+            <label for="qemail">Email <span class="qw-opt">(optional)</span></label>
+            <input type="email" id="qemail" name="email" autocomplete="email" placeholder="jane@example.com" />
+            <div class="err-msg" data-for="qemail">Please enter a valid email address.</div>
+          </div>
+          <label class="consent">
+            <input type="checkbox" id="qconsent" name="consent" />
+            <span>I agree to the <a href="#privacy" style="color:var(--brand);text-decoration:underline" onclick="event.preventDefault();event.stopPropagation();openPrivacy()">privacy policy</a> and agree to be contacted via phone from Green Offers' approved <span class="partners-tip" tabindex="0" role="button" aria-label="Approved partners: Scottish Power, British Gas, EDF">partners<span class="partners-pop">Scottish Power<br>British Gas<br>EDF</span></span>.</span>
+          </label>
+          <div class="err-msg" data-for="qconsent" style="margin:-6px 0 12px">Please tick to continue.</div>
+          <div class="qw-actions">
+            <button type="button" class="qw-back" data-back="3">← Back</button>
+            <button type="submit" class="btn btn-accent btn-lg" id="qwSubmit">Get my quote →</button>
+          </div>
+          <p class="qw-trust" style="text-align:center">Free · No obligation</p>
+        </div>
+      </form>
+
+      <div class="qw-success" id="qwSuccess" role="status" aria-live="polite">
+        <div class="check"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m5 13 4 4L19 7"/></svg></div>
+        <h3>Thanks, <span id="qwName">there</span>!</h3>
+        <p>Your free quote request is in. An advisor will call you shortly on the number you gave us.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<section class="stats">
+  <div class="wrap stats-grid">
+    <div class="stat reveal"><div class="num"><em data-count="4">0</em></div><div class="lbl">Upgrades in one place*</div></div>
+    <div class="stat reveal"><div class="num"><em data-count="100">0</em>%</div><div class="lbl">Free, no obligation</div></div>
+    <div class="stat reveal"><div class="num"><em data-count="2">0</em> min</div><div class="lbl">To request your quote</div></div>
+    <div class="stat reveal"><div class="num">MCS*</div><div class="lbl">Vetted installers</div></div>
+  </div>
+</section>
+
+<!-- HOW -->
+<section class="section" id="how">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">How it works</span>
+      <h2>From enquiry to install, without the legwork.</h2>
+      <p>Tell us what you're after and we match you with the right vetted installer.</p>
+    </div>
+    <div class="steps">
+      <div class="step reveal"><div class="step-no">1</div><h3>Tell us your plans</h3><p>Pick the upgrades you're interested in and share a few quick details about your home. Takes a couple of minutes.</p></div>
+      <div class="step reveal"><div class="step-no">2</div><h3>We match &amp; call</h3><p>An advisor calls to understand your needs and matches you with a suitable vetted installer for your area.</p></div>
+      <div class="step reveal"><div class="step-no">3</div><h3>Get your free quote</h3><p>You receive a no-obligation quote for your upgrade. Happy to proceed? We help arrange the rest.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- UPGRADES -->
+<section class="section band-mint" id="upgrades">
+  <div class="wrap">
+    <div class="section-head center reveal">
+      <span class="eyebrow" style="justify-content:center">What we cover</span>
+      <h2>Four ways to a greener, cheaper home.</h2>
+    </div>
+    <div class="up-grid">
+      <div class="up-card reveal">
+        <div class="ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg></div>
+        <h3>Solar panels</h3>
+        <p>Generate your own electricity from daylight and lean less on the grid — with any surplus earning you money back.</p>
+      </div>
+      <div class="up-card reveal">
+        <div class="ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="16" height="10" rx="2"/><path d="M22 10v4M10 10l-2 4h3l-2 3" stroke-linejoin="round"/></svg></div>
+        <h3>Battery storage</h3>
+        <p>Store the energy you generate (or buy cheaply overnight) and use it when you need it, day or night.</p>
+      </div>
+      <div class="up-card reveal">
+        <div class="ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="12" cy="12" r="4"/><path d="M12 8v8M8 12h8"/></svg></div>
+        <h3>Heat pumps</h3>
+        <p>A cleaner, efficient way to heat your home that can replace an ageing boiler — and you may qualify for government grants.</p>
+      </div>
+      <div class="up-card reveal">
+        <div class="ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 11l1.5-4.5A2 2 0 0 1 8.4 5h7.2a2 2 0 0 1 1.9 1.5L19 11v6a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1v-1H8v1a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1Z"/><path d="M7 14h.01M17 14h.01"/></svg></div>
+        <h3>EV charging</h3>
+        <p>Charge your electric car at home, overnight and on cheaper rates — faster and more convenient than public points.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WHY -->
+<section class="section" id="why">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">Why Green Offers</span>
+      <h2>One place for every green upgrade.</h2>
+    </div>
+    <div class="why-grid">
+      <div class="why reveal"><div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div><h3>Cut your energy bills</h3><p>Generating, storing and using your own energy means buying less from the grid — the reason most people start.</p></div></div>
+      <div class="why reveal"><div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg></div><div><h3>Vetted installers</h3><p>We match you with installers who hold the right accreditations, so the work is done to standard.</p></div></div>
+      <div class="why reveal"><div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7h-9M14 17H5M3 7h3M18 17h3"/><circle cx="9" cy="7" r="2.5"/><circle cx="15" cy="17" r="2.5"/></svg></div><div><h3>Grants where eligible</h3><p>Some upgrades — heat pumps in particular — may qualify for government support. We'll explain what you could be eligible for.</p></div></div>
+      <div class="why reveal"><div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 11-8 11s-8-5-8-11a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg></div><div><h3>A real advisor</h3><p>You'll speak to a person who explains your options in plain English — no pressure, no jargon.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ACCREDITATION -->
+<section class="section band-mint">
+  <div class="wrap">
+    <div class="section-head center reveal" style="margin-bottom:26px">
+      <span class="eyebrow" style="justify-content:center">Standards we look for</span>
+      <h2>Work done properly, by accredited installers.</h2>
+    </div>
+    <div class="chips reveal">
+      <span class="chip">MCS Certified</span>
+      <span class="chip">TrustMark</span>
+      <span class="chip">RECC</span>
+      <span class="chip">HIES</span>
+    </div>
+    <p class="sup-note reveal">Accreditations shown are industry standards we look for in our installer partners. Green Offers is a lead-generation service and does not carry out installations.</p>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="section">
+  <div class="wrap">
+    <div class="section-head center reveal">
+      <span class="eyebrow" style="justify-content:center">What customers say</span>
+      <h2>Greener homes, smaller bills.</h2>
+    </div>
+    <div class="quotes">
+      <div class="quote reveal"><div class="stars" aria-label="5 out of 5">★★★★★</div><p>"Wanted solar and a battery — one call and they sorted a quote from a proper installer. Really straightforward."</p><div class="who"><span class="av">JM</span><div><b>Janet M.</b><span>Homeowner</span></div></div></div>
+      <div class="quote reveal"><div class="stars" aria-label="5 out of 5">★★★★★</div><p>"The advisor talked me through the heat pump grant and what my home needed. No pressure at all."</p><div class="who"><span class="av">DR</span><div><b>David R.</b><span>Homeowner</span></div></div></div>
+      <div class="quote reveal"><div class="stars" aria-label="5 out of 5">★★★★★</div><p>"Booked a home EV charger through them. Quick, easy, and cheaper than I expected."</p><div class="who"><span class="av">SK</span><div><b>Sarah K.</b><span>Homeowner</span></div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="section" style="padding-top:0">
+  <div class="wrap">
+    <div class="cta-band reveal">
+      <h2>Ready to green up your home?</h2>
+      <p>Get your free, no-obligation quote and an advisor will call you back to talk through your options.</p>
+      <a href="#quote" class="btn btn-accent btn-lg" style="position:relative">Get my free quote</a>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="section band-mint" id="faq">
+  <div class="wrap">
+    <div class="section-head center reveal"><span class="eyebrow" style="justify-content:center">Good to know</span><h2>Frequently asked questions</h2></div>
+    <div class="faq">
+      <div class="faq-item"><button class="faq-q">Is Green Offers really free?<span class="pm">+</span></button><div class="faq-a"><p>Yes. Getting a quote through us is completely free and there's no obligation to go ahead.</p></div></div>
+      <div class="faq-item"><button class="faq-q">Do I need to own my home?<span class="pm">+</span></button><div class="faq-a"><p>For now, yes. These upgrades are fixed to the property, so they need the owner's authorisation. If you rent, you'd need your landlord's agreement first.</p></div></div>
+      <div class="faq-item"><button class="faq-q">Can solar really cut my bills?<span class="pm">+</span></button><div class="faq-a"><p>Solar lets you use electricity you've generated yourself instead of buying it from the grid, and you can be paid for any surplus you export. Your actual saving depends on your home, usage and tariff — an advisor will talk you through what's realistic for you.</p></div></div>
+      <div class="faq-item"><button class="faq-q">Are there grants for heat pumps?<span class="pm">+</span></button><div class="faq-a"><p>Government support schemes exist for measures like heat pumps, and eligibility and amounts change over time. We'll explain what you may be eligible for based on your home and where you live.</p></div></div>
+      <div class="faq-item"><button class="faq-q">Do you carry out the installation?<span class="pm">+</span></button><div class="faq-a"><p>No — we match you with vetted, accredited installers. Green Offers is a lead-generation and matching service, not an installer.</p></div></div>
+      <div class="faq-item"><button class="faq-q">How is my data handled?<span class="pm">+</span></button><div class="faq-a"><p>Your details are used to prepare your quote and match you with a suitable installer, in line with UK data protection law. See our privacy policy for the full detail.</p></div></div>
+    </div>
+  </div>
+</section>
+</main><!-- /view-home -->
+
+<!-- PRIVACY VIEW -->
+<main id="view-privacy" style="display:none">
+  <section class="page-hero">
+    <div class="wrap">
+      <p class="crumb"><a href="#top">Home</a> &rsaquo; Privacy Policy</p>
+      <span class="legal-eyebrow">Your data, explained</span>
+      <h1>Privacy Policy</h1>
+      <p>How we collect, use, share and protect the information you provide to us.</p>
+    </div>
+  </section>
+  <div class="legal-wrap">
+    <article class="legal">
+      <span class="updated">Last updated 14 October 2024</span>
+      <h2 id="p-about">About this Privacy Policy</h2>
+      <p>Our Privacy Policy outlines how we use and share the information you provide. The General Data Protection Regulation (GDPR) sets out how organisations must collect, manage, process and safeguard personal information. We take privacy seriously and commit to using your personal information strictly in compliance with the law.</p>
+      <h2 id="p-us">About us and how to reach us</h2>
+      <p>Green Offers is a trading style of Interactive Results Limited, which connects individuals seeking quotes for products or services with relevant providers. You can reach us at:</p>
+      <div class="contact-card">
+        <p><strong>Email:</strong> <a href="mailto:compliance@interactiveresults.co.uk">compliance@interactiveresults.co.uk</a></p>
+        <p><strong>Post:</strong> 1st Floor, Erskine House, 1 North Avenue, Clydebank Business Park, Clydebank, G81 2DR</p>
+      </div>
+      <p>Interactive Results Limited acts as the Data Controller. In some cases we act as Joint Data Controller with a partner, under appropriate Data Sharing Agreements.</p>
+      <h2 id="p-use">How your data is used</h2>
+      <p>With your consent, we collect your details when you request a quote and may contact you by phone, SMS, email or web chat to confirm your requirements. With your consent, your data may be shared with our marketing and installer partners so they can provide the products or services you've asked about. Prior to sending third-party marketing communications we seek your explicit consent, and you can withdraw it at any time.</p>
+      <h2 id="p-store">What we store and for how long</h2>
+      <p>We typically store your name, address, email, phone number and details of the product or service you're interested in. We retain personal data only as long as reasonably necessary for the purposes it was collected, including legal, regulatory and accounting obligations.</p>
+      <h2 id="p-rights">Your rights</h2>
+      <p>Under data protection law you have the right to access, correct, erase, restrict or object to the processing of your personal data, to data portability, and to withdraw consent. You can read more at the <a href="https://ico.org.uk/for-organisations/guide-to-the-general-data-protection-regulation-gdpr/individual-rights/">ICO</a>. To exercise any right, contact us using the details above.</p>
+      <h2 id="p-share">Who we share your data with</h2>
+      <p>We are a marketing and lead-generation company and will share your details with the installer and marketing partners named at the point of collection, so they can contact you about the products or services you requested. We require our partners to respect the security of your data and to process it in line with the law and our instructions. We only share your data with your consent or as you would reasonably expect, and you can withdraw consent at any time.</p>
+      <h2 id="p-optout">How to opt out</h2>
+      <ul>
+        <li>Email <a href="mailto:compliance@interactiveresults.co.uk">compliance@interactiveresults.co.uk</a> with "STOP" to opt out of our communications.</li>
+        <li>Register with the <a href="https://www.tpsonline.org.uk">Telephone Preference Service</a> to reduce marketing calls.</li>
+        <li>Unsubscribe using the link in any marketing email or SMS.</li>
+      </ul>
+      <h2 id="p-contact">Complaints</h2>
+      <p>If you have concerns, contact our Data Protection Officer at <a href="mailto:dataprotection@interactiveresults.co.uk">dataprotection@interactiveresults.co.uk</a>. You also have the right to complain to the Information Commissioner's Office (<a href="https://www.ico.org.uk">www.ico.org.uk</a>).</p>
+      <p class="note">This Privacy Policy applies to <a href="https://www.green-offers.com">www.green-offers.com</a>, a trading style of Interactive Results Ltd (ICO registration ZA085098). Last updated 14 October 2024.</p>
+    </article>
+  </div>
+</main>
+
+<!-- FOOTER -->
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a href="#top" class="logo"><span class="mark" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C7 7 6 11 8 15a6 6 0 0 0 8 0c2-4 1-8-4-13Z"/></svg></span>Green <b>Offers</b></a>
+        <p class="foot-about">Free quotes on solar, batteries, heat pumps and EV charging for UK homeowners — from vetted installers.</p>
+      </div>
+      <div class="foot-col"><h4>Upgrades</h4><a href="#upgrades">Solar panels</a><a href="#upgrades">Battery storage</a><a href="#upgrades">Heat pumps</a><a href="#upgrades">EV charging</a></div>
+      <div class="foot-col"><h4>Company</h4><a href="#how">How it works</a><a href="#why">Why us</a><a href="#faq">FAQs</a><a href="#quote">Get a quote</a></div>
+      <div class="foot-col"><h4>Legal</h4><a href="#privacy">Privacy policy</a><a href="#">Cookie policy</a><a href="#">Terms of use</a></div>
+    </div>
+    <div class="foot-bottom">
+      <p class="reg">Green Offers is a trading name of Interactive Results Limited, a company registered in Scotland (No.&nbsp;SC487971), ICO registration ZA085098. &copy; <span id="yr"></span> Interactive Results Limited. All rights reserved.</p>
+      <p>Made in Glasgow</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+  document.getElementById('yr').textContent = new Date().getFullYear();
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // menu
+  const menuBtn = document.getElementById('menuBtn');
+  const navLinks = document.getElementById('navLinks');
+  menuBtn.addEventListener('click', () => { const o = navLinks.classList.toggle('open'); menuBtn.setAttribute('aria-expanded', o); });
+
+  // view routing (home <-> privacy)
+  const viewHome = document.getElementById('view-home');
+  const viewPrivacy = document.getElementById('view-privacy');
+  function setView(name){ if(name==='privacy'){viewHome.style.display='none';viewPrivacy.style.display='block';}else{viewPrivacy.style.display='none';viewHome.style.display='block';} }
+  function openPrivacy(){ setView('privacy'); if(location.hash!=='#privacy') history.pushState(null,'','#privacy'); window.scrollTo({top:0,behavior:'auto'}); }
+  window.openPrivacy = openPrivacy;
+  if(location.hash==='#privacy') setView('privacy');
+  window.addEventListener('popstate', ()=>{ setView(location.hash==='#privacy'?'privacy':'home'); window.scrollTo({top:0,behavior:'auto'}); });
+  document.addEventListener('click', (e)=>{
+    const a = e.target.closest('a'); if(!a) return;
+    const href = a.getAttribute('href'); if(!href) return;
+    if(href==='#privacy'){ e.preventDefault(); openPrivacy(); return; }
+    if(href==='#'){ e.preventDefault(); return; }
+    if(href.charAt(0)!=='#') return;
+    const target = document.getElementById(href.slice(1)); if(!target) return;
+    e.preventDefault();
+    const inPrivacy = viewPrivacy.contains(target);
+    setView(inPrivacy?'privacy':'home');
+    if(!inPrivacy && location.hash==='#privacy') history.replaceState(null,'',location.pathname);
+    target.scrollIntoView({behavior:reduceMotion?'auto':'smooth',block:'start'});
+    navLinks.classList.remove('open');
+  });
+
+  // reveal + count-up
+  function countUp(el,target,dur){ if(reduceMotion){el.textContent=target;return;} const s=performance.now(); (function tick(now){const p=Math.min((now-s)/dur,1);const e=1-Math.pow(1-p,3);el.textContent=Math.round(target*e);if(p<1)requestAnimationFrame(tick);})(performance.now()); }
+  const statObs = new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.querySelectorAll('[data-count]').forEach(n=>countUp(n,parseInt(n.dataset.count,10),1100));statObs.unobserve(e.target);}});},{threshold:.4});
+  document.querySelectorAll('.stats').forEach(s=>statObs.observe(s));
+  const revObs = new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');revObs.unobserve(e.target);}});},{threshold:.12});
+  document.querySelectorAll('.reveal').forEach((el,i)=>{el.style.transitionDelay=Math.min(i%4*.06,.18)+'s';revObs.observe(el);});
+
+  // faq
+  document.querySelectorAll('.faq-q').forEach(q=>{q.addEventListener('click',()=>{const item=q.parentElement;const ans=item.querySelector('.faq-a');const open=item.classList.contains('open');document.querySelectorAll('.faq-item').forEach(i=>{i.classList.remove('open');i.querySelector('.faq-a').style.maxHeight=null;});if(!open){item.classList.add('open');ans.style.maxHeight=ans.scrollHeight+'px';}});});
+
+  /* ===========================================================
+     QUOTE WIZARD  —  multi-product green-home lead funnel
+     Posts to /api/lead (Worker → LeadByte campaign SOLARLEADS).
+     =========================================================== */
+  const qForm = document.getElementById('quoteForm');
+  const qBar = document.getElementById('qwBar');
+  const qStepLabel = document.getElementById('qwStepLabel');
+  const qSuccess = document.getElementById('qwSuccess');
+  const qSubmit = document.getElementById('qwSubmit');
+  const TOTAL_STEPS = 4;
+  let curStep = 1;
+
+  const PRODUCT_LABELS = { solar:'Solar panels', battery:'Battery storage', heatpump:'Heat pump', ev:'EV charger' };
+  const selectedProducts = new Set();
+
+  const trackParams = {};
+  (function(){ const p=new URLSearchParams(location.search); ['utm_source','utm_medium','utm_campaign','utm_term','utm_content','gclid','fbclid','sid','aff_id','clickid','source'].forEach(k=>{const v=p.get(k);if(v)trackParams[k]=v;}); })();
+
+  function setErr(id,show){ const i=document.getElementById(id); const m=document.querySelector(`.err-msg[data-for="${id}"]`); if(i)i.classList.toggle('err',show); if(m)m.classList.toggle('show',show); }
+  const val = id => (document.getElementById(id).value||'').trim();
+  const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const phoneRe = /^(?:0|\+?44)[\d\s()-]{8,}$/;
+
+  // product tiles
+  document.querySelectorAll('.ptile').forEach(t=>{
+    t.addEventListener('click', ()=>{
+      const p = t.dataset.product;
+      if(selectedProducts.has(p)){ selectedProducts.delete(p); t.classList.remove('selected'); }
+      else { selectedProducts.add(p); t.classList.add('selected'); }
+      document.getElementById('qwProdHint').hidden = selectedProducts.size > 0;
+    });
+  });
+
+  // show/hide branch fields for step 3 based on chosen products
+  function syncBranchFields(){
+    document.querySelectorAll('.qw-branch').forEach(f=>{
+      const need = (f.dataset.need||'').split(' ');
+      f.hidden = !need.some(n=>selectedProducts.has(n));
+    });
+  }
+
+  // homeowner gate
+  const ownerSel = document.getElementById('qowner');
+  const gate = document.getElementById('qwGate');
+  const homeFields = document.getElementById('qwHomeFields');
+  ownerSel.addEventListener('change', ()=>{
+    setErr('qowner', false);
+    if(ownerSel.value === 'No'){ gate.classList.add('show'); homeFields.style.display='none'; }
+    else { gate.classList.remove('show'); homeFields.style.display=''; }
+  });
+
+  function showStep(n){
+    qForm.querySelectorAll('.qw-step').forEach(s=>s.classList.toggle('is-active', Number(s.dataset.step)===n));
+    curStep = n;
+    qBar.style.width = (n/TOTAL_STEPS*100)+'%';
+    qStepLabel.textContent = `Step ${n} of ${TOTAL_STEPS}`;
+    if(n===3) syncBranchFields();
+    const active = qForm.querySelector('.qw-step.is-active');
+    const first = active && active.querySelector('input,select');
+    if(first && n!==1) setTimeout(()=>{ try{first.focus({preventScroll:true});}catch(_){}} ,60);
+  }
+
+  function validateStep(n){
+    if(n===1){ const ok = selectedProducts.size>0; document.getElementById('qwProdHint').hidden = ok; return ok; }
+    if(n===2){ const ok = val('qpostcode').length>1; setErr('qpostcode',!ok); return ok; }
+    if(n===3){
+      const owner = val('qowner')!==''; setErr('qowner',!owner);
+      if(val('qowner')==='No') return false; // homeowners only
+      const prop = val('qproperty')!==''; setErr('qproperty',!prop);
+      let branchOk = true;
+      document.querySelectorAll('.qw-branch').forEach(f=>{
+        if(f.hidden) return;
+        const sel = f.querySelector('select');
+        const good = sel.value!==''; setErr(sel.id,!good); if(!good) branchOk=false;
+      });
+      return owner && prop && branchOk;
+    }
+    if(n===4){
+      const name=val('qname').length>0; setErr('qname',!name);
+      const lname=val('qlname').length>0; setErr('qlname',!lname);
+      const phone=phoneRe.test(val('qphone')); setErr('qphone',!phone);
+      const email=val('qemail')===''||emailRe.test(val('qemail')); setErr('qemail',!email);
+      const consent=document.getElementById('qconsent').checked; setErr('qconsent',!consent);
+      return name&&lname&&phone&&email&&consent;
+    }
+    return true;
+  }
+
+  qForm.querySelectorAll('.qw-next').forEach(b=>b.addEventListener('click',()=>{ if(validateStep(curStep)) showStep(Number(b.dataset.next)); }));
+  qForm.querySelectorAll('.qw-back').forEach(b=>b.addEventListener('click',()=>showStep(Number(b.dataset.back))));
+  qForm.addEventListener('keydown',(e)=>{
+    if(e.key!=='Enter') return;
+    if(e.target && e.target.id==='qpostcode'){ e.preventDefault(); findAddresses(); return; }
+    if(curStep<TOTAL_STEPS){ e.preventDefault(); if(validateStep(curStep)) showStep(curStep+1); }
+  });
+  qForm.querySelectorAll('input,select').forEach(el=>{ el.addEventListener('input',()=>setErr(el.id,false)); el.addEventListener('change',()=>setErr(el.id,false)); });
+
+  // address lookup — calls our own Worker (/api/address), which proxies to the
+  // GoAddress worker server-side, so there's no browser CORS to trip over.
+  const ADDRESS_LOOKUP_URL = '/api/address';
+  const qwFind=document.getElementById('qwFind');
+  const qAddrWrap=document.getElementById('qwAddrWrap');
+  const qAddrSel=document.getElementById('qaddress');
+  const qLookupMsg=document.getElementById('qwLookupMsg');
+  let addrResults=[]; let selectedAddress={line1:'',line2:'',town:''};
+  function showLookupMsg(t){ if(!t){qLookupMsg.hidden=true;qLookupMsg.textContent='';return;} qLookupMsg.hidden=false; qLookupMsg.textContent=t; }
+
+  // turn one GoAddress record into line1 / line2 / town / postcode
+  function mapAddress(a){
+    const flat=(a.flat||'').toString().trim();
+    const building=(a.building_name||'').trim();
+    const org=(a.organisation||'').trim();
+    const houseNo=(a.houseNo||'').toString().trim();
+    const street=(a.street||'').trim();
+    const streetLine=[houseNo,street].filter(Boolean).join(' ');
+    const premises=[org,building,flat].filter(Boolean).join(', ');
+    let line1,line2;
+    if(premises){ line1=premises; line2=streetLine; } else { line1=streetLine; line2=''; }
+    if(!line1) line1=(a.raw_address||a.address||'').trim();
+    return { line1, line2, town:(a.post_town||a.city||a.town||'').trim(), postcode:(a.postcode||'').trim() };
+  }
+
+  async function findAddresses(){
+    const pc=val('qpostcode'); if(pc.length<5){ setErr('qpostcode',true); return; }
+    setErr('qpostcode',false); showLookupMsg('');
+    const orig=qwFind.textContent; qwFind.disabled=true; qwFind.textContent='Searching…';
+    try{
+      const res=await fetch(ADDRESS_LOOKUP_URL+'?q='+encodeURIComponent(pc));
+      const data=await res.json();
+      const list=(data.new_address_res && data.new_address_res.length)
+        ? data.new_address_res
+        : (data.results||[]).map(r=>({ raw_address:r.address, address:r.address, postcode:r.postcode }));
+      addrResults=list;
+      if(list.length){
+        qAddrSel.innerHTML='<option value="">Select your address…</option>'+list.map((a,i)=>{
+          const txt=a.raw_address||a.address||[a.houseNo,a.street].filter(Boolean).join(' ')||('Address '+(i+1));
+          return `<option value="${i}">${String(txt).replace(/</g,'&lt;')}</option>`;
+        }).join('');
+        qAddrWrap.hidden=false; setTimeout(()=>{try{qAddrSel.focus();}catch(_){}} ,60);
+      } else { qAddrWrap.hidden=true; showLookupMsg("We couldn't find addresses for that postcode — you can continue with just your postcode."); }
+    }catch(_){ qAddrWrap.hidden=true; showLookupMsg("Address lookup is unavailable right now — you can continue with just your postcode."); }
+    finally{ qwFind.disabled=false; qwFind.textContent=orig; }
+  }
+  if(qwFind) qwFind.addEventListener('click',findAddresses);
+  if(qAddrSel) qAddrSel.addEventListener('change',()=>{
+    const i=qAddrSel.value;
+    if(i===''||!addrResults[i]){ selectedAddress={line1:'',line2:'',town:''}; return; }
+    const m=mapAddress(addrResults[i]);
+    selectedAddress={line1:m.line1,line2:m.line2,town:m.town};
+    if(m.postcode){ document.getElementById('qpostcode').value=m.postcode.toUpperCase(); }
+  });
+
+  // partners tooltip
+  document.querySelectorAll('.partners-tip').forEach(t=>t.addEventListener('click',(e)=>{e.preventDefault();e.stopPropagation();t.classList.toggle('open');}));
+  document.addEventListener('click',(e)=>{ if(!e.target.closest('.partners-tip')) document.querySelectorAll('.partners-tip.open').forEach(t=>t.classList.remove('open')); });
+
+  function fmtDate(d){ const p=n=>String(n).padStart(2,'0'); return `${p(d.getDate())}/${p(d.getMonth()+1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`; }
+
+  function collectLead(){
+    return {
+      product_interest: Array.from(selectedProducts).map(p=>PRODUCT_LABELS[p]).join(', '),
+      homeowner:    val('qowner'),
+      propertyType: val('qproperty'),
+      monthlyBill:  val('qbill'),
+      heatingType:  val('qheating'),
+      offStreetParking: val('qparking'),
+      firstName:    val('qname'),
+      lastName:     val('qlname'),
+      phone:        val('qphone').replace(/\s+/g,''),
+      email:        val('qemail'),
+      postcode:     val('qpostcode').toUpperCase(),
+      street1:      selectedAddress.line1,
+      street2:      selectedAddress.line2,
+      towncity:     selectedAddress.town,
+      pageUrl:      location.href,
+      optinDate:    fmtDate(new Date()),
+      ...trackParams
+    };
+  }
+
+  async function submitLead(lead){
+    const res = await fetch('/api/lead',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(lead)});
+    if(!res.ok) throw new Error('Network error '+res.status);
+    return res.json();
+  }
+
+  qForm.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    if(!validateStep(4)){
+      const fe=qForm.querySelector('.qw-step.is-active .err, .qw-step.is-active .err-msg.show');
+      if(fe) fe.scrollIntoView({behavior:reduceMotion?'auto':'smooth',block:'center'});
+      return;
+    }
+    const lead=collectLead();
+    qSubmit.disabled=true; qSubmit.textContent='Sending…';
+    try{
+      const result=await submitLead(lead);
+      if(!result||result.code!==1) console.warn('LeadByte did not accept the lead:',result);
+      document.getElementById('qwName').textContent=lead.firstName||'there';
+      qForm.style.display='none'; qBar.style.width='100%'; qStepLabel.textContent='Done';
+      const sh=document.querySelector('.qw-savehint'); if(sh) sh.style.display='none';
+      qSuccess.classList.add('show');
+      document.getElementById('quote').scrollIntoView({behavior:reduceMotion?'auto':'smooth',block:'center'});
+    }catch(err){
+      qSubmit.disabled=false; qSubmit.textContent='Get my quote →';
+      alert('Sorry — something went wrong sending your details. Please try again.');
+    }
+  });
+
+  showStep(1);
+</script>
+</body>
+</html>
