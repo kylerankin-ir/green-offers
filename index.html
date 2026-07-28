@@ -274,8 +274,33 @@
   }
   @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}.reveal{opacity:1;transform:none}}
 </style>
-</head>
-<body>
+<!-- ===== Google Ads conversion tracking =====
+     TO ACTIVATE (after you create the "Lead – quote submitted" conversion action in Google Ads):
+       1. Replace AW-XXXXXXXXXX below with your Conversion ID.
+       2. Replace CONVERSION_LABEL below with that action's label.
+     Until both are set, this stays dormant and the site runs normally. -->
+<script>
+  window.GADS_ID = 'AW-XXXXXXXXXX';
+  window.GADS_LABEL = 'CONVERSION_LABEL';
+  (function(){
+    var active = window.GADS_ID && window.GADS_ID.indexOf('X') === -1;
+    if(!active) return;
+    var s = document.createElement('script'); s.async = true;
+    s.src = 'https://www.googletagmanager.com/gtag/js?id=' + window.GADS_ID;
+    document.head.appendChild(s);
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function(){ dataLayer.push(arguments); };
+    gtag('js', new Date());
+    gtag('config', window.GADS_ID);
+  })();
+  window.fireLeadConversion = function(){
+    if(window.gtag && window.GADS_ID && window.GADS_ID.indexOf('X') === -1
+       && window.GADS_LABEL && window.GADS_LABEL !== 'CONVERSION_LABEL'){
+      gtag('event', 'conversion', { send_to: window.GADS_ID + '/' + window.GADS_LABEL });
+    }
+  };
+</script>
+</head><body>
 
 <header>
   <div class="wrap nav">
@@ -304,8 +329,8 @@
   <div class="wrap hero-grid">
     <div class="hero-copy reveal">
       <span class="eyebrow">Green home upgrades, made simple</span>
-      <h1>Cut your bills with a <em>greener</em> home.</h1>
-      <p class="lead">Free quotes on solar, batteries, heat pumps and EV charging — from vetted installers, with a real advisor to guide you.</p>
+      <h1 id="heroTitle">Cut your bills with a <em>greener</em> home.</h1>
+      <p class="lead" id="heroLead">Free quotes on solar, batteries, heat pumps and EV charging — from vetted installers, with a real advisor to guide you.</p>
       <div class="trust-row">
         <span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m5 13 4 4L19 7"/></svg> 100% free</span>
         <span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m5 13 4 4L19 7"/></svg> No obligation</span>
@@ -580,21 +605,6 @@
   </div>
 </section>
 
-<!-- TESTIMONIALS -->
-<section class="section">
-  <div class="wrap">
-    <div class="section-head center reveal">
-      <span class="eyebrow" style="justify-content:center">What customers say</span>
-      <h2>Greener homes, smaller bills.</h2>
-    </div>
-    <div class="quotes">
-      <div class="quote reveal"><div class="stars" aria-label="5 out of 5">★★★★★</div><p>"Wanted solar and a battery — one call and they sorted a quote from a proper installer. Really straightforward."</p><div class="who"><span class="av">JM</span><div><b>Janet M.</b><span>Homeowner</span></div></div></div>
-      <div class="quote reveal"><div class="stars" aria-label="5 out of 5">★★★★★</div><p>"The advisor talked me through the heat pump grant and what my home needed. No pressure at all."</p><div class="who"><span class="av">DR</span><div><b>David R.</b><span>Homeowner</span></div></div></div>
-      <div class="quote reveal"><div class="stars" aria-label="5 out of 5">★★★★★</div><p>"Booked a home EV charger through them. Quick, easy, and cheaper than I expected."</p><div class="who"><span class="av">SK</span><div><b>Sarah K.</b><span>Homeowner</span></div></div></div>
-    </div>
-  </div>
-</section>
-
 <!-- CTA -->
 <section class="section" style="padding-top:0">
   <div class="wrap">
@@ -758,6 +768,34 @@
       document.getElementById('qwProdHint').hidden = selectedProducts.size > 0;
     });
   });
+
+  // pre-select product(s) from the URL (?product=solar) for ad message-match
+  (function(){
+    const raw = new URLSearchParams(location.search).get('product') || new URLSearchParams(location.search).get('products') || '';
+    const alias = { solar:'solar', pv:'solar', battery:'battery', storage:'battery',
+                    heatpump:'heatpump', 'heat-pump':'heatpump', heat_pump:'heatpump', ashp:'heatpump',
+                    ev:'ev', evcharger:'ev', 'ev-charger':'ev', charger:'ev' };
+    const picked = raw.split(',').map(s=>alias[s.trim().toLowerCase()]).filter(Boolean);
+    if(!picked.length) return;
+    picked.forEach(code=>{
+      selectedProducts.add(code);
+      const tile = document.querySelector('.ptile[data-product="'+code+'"]');
+      if(tile) tile.classList.add('selected');
+    });
+    const hint = document.getElementById('qwProdHint'); if(hint) hint.hidden = true;
+    // tailor the hero to match the ad when a single product is specified
+    if(picked.length === 1){
+      const H = {
+        solar:    { t:'Cut your bills with <em>solar panels</em>.', l:'Free, no-obligation solar quotes from vetted installers — with a real advisor to guide you.' },
+        battery:  { t:'Store your energy with a <em>home battery</em>.', l:'Free, no-obligation battery storage quotes from vetted installers — with a real advisor to guide you.' },
+        heatpump: { t:'A warmer home with a <em>heat pump</em>.', l:'Free, no-obligation heat pump quotes from vetted installers — you may qualify for a government grant.' },
+        ev:       { t:'Charge your EV at home for <em>less</em>.', l:'Free, no-obligation EV charger quotes from vetted installers — with a real advisor to guide you.' }
+      }[picked[0]];
+      const ht = document.getElementById('heroTitle'); const hl = document.getElementById('heroLead');
+      if(H && ht) ht.innerHTML = H.t;
+      if(H && hl) hl.textContent = H.l;
+    }
+  })();
 
   // show/hide branch fields for step 3 based on chosen products
   function syncBranchFields(){
@@ -928,6 +966,7 @@
       qForm.style.display='none'; qBar.style.width='100%'; qStepLabel.textContent='Done';
       const sh=document.querySelector('.qw-savehint'); if(sh) sh.style.display='none';
       qSuccess.classList.add('show');
+      if(window.fireLeadConversion) window.fireLeadConversion();
       document.getElementById('quote').scrollIntoView({behavior:reduceMotion?'auto':'smooth',block:'center'});
     }catch(err){
       qSubmit.disabled=false; qSubmit.textContent='Get my quote →';
