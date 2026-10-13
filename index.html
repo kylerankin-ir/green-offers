@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Green Offers — Solar, batteries, heat pumps & EV charging</title>
-<meta name="description" content="Green Offers helps UK homeowners get free quotes on solar panels, battery storage, heat pumps and EV charging — with vetted installers. Free, no obligation." />
+<title>Green Offers — Compare energy & green home upgrades</title>
+<meta name="description" content="Compare energy deals and cut your bills with Green Offers — plus optional solar, battery, heat pump and EV charger quotes. Free, no obligation, advisor-guided." />
 
 <!-- ============================================================
      API: this site uses Cloudflare Pages Functions in the repo:
@@ -122,6 +122,12 @@
   .qw-lookup .btn{flex:none;padding:13px 18px}
   .qw-addr-wrap{margin-top:14px}
   .qw-lookup-msg{font-size:.83rem;color:var(--ink-soft);margin-top:10px}
+  .qw-optins{margin:6px 0 16px;padding:14px 15px;border:1px dashed var(--line);border-radius:12px;background:var(--mint)}
+  .qw-optins-label{font-size:.9rem;font-weight:600;margin-bottom:10px}
+  .qw-chips{display:flex;flex-wrap:wrap;gap:8px}
+  .qchip{font-family:inherit;font-size:.9rem;font-weight:600;padding:9px 14px;border-radius:999px;border:1.5px solid var(--line);background:#fff;color:var(--ink);cursor:pointer;transition:background .15s,border-color .15s,color .15s}
+  .qchip:hover{border-color:var(--brand-bright)}
+  .qchip.selected{background:var(--brand);color:#fff;border-color:var(--brand)}
   .qw-next{width:100%}
   .qw-actions{display:flex;align-items:center;gap:12px;margin-top:6px}
   .qw-actions .btn{flex:1}
@@ -328,13 +334,13 @@
 <section class="hero">
   <div class="wrap hero-grid">
     <div class="hero-copy reveal">
-      <span class="eyebrow">Green home upgrades, made simple</span>
-      <h1 id="heroTitle">Cut your bills with a <em>greener</em> home.</h1>
-      <p class="lead" id="heroLead">Free quotes on solar, batteries, heat pumps and EV charging — from vetted installers, with a real advisor to guide you.</p>
+      <span class="eyebrow">Compare energy &amp; save</span>
+      <h1 id="heroTitle">Compare energy and <em>cut your bills</em>.</h1>
+      <p class="lead" id="heroLead">Compare energy deals in minutes — and add solar, a battery, a heat pump or EV charging while you're at it. Free, no obligation, with a real advisor to guide you.</p>
       <div class="trust-row">
         <span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m5 13 4 4L19 7"/></svg> 100% free</span>
         <span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m5 13 4 4L19 7"/></svg> No obligation</span>
-        <span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m5 13 4 4L19 7"/></svg> Vetted installers</span>
+        <span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m5 13 4 4L19 7"/></svg> Advisor-guided</span>
       </div>
     </div>
 
@@ -342,45 +348,14 @@
     <div class="quote-wizard reveal" id="quote">
       <div class="qw-head">
         <div class="qw-progress" aria-hidden="true"><span class="qw-bar" id="qwBar"></span></div>
-        <div class="qw-meta"><span id="qwStepLabel">Step 1 of 4</span><span class="qw-savehint">Free &amp; no obligation</span></div>
+        <div class="qw-meta"><span id="qwStepLabel">Step 1 of 3</span><span class="qw-savehint">Free &amp; no obligation</span></div>
       </div>
 
-      <form id="quoteForm" novalidate>
-        <!-- STEP 1: products -->
+            <form id="quoteForm" novalidate>
+        <!-- STEP 1: postcode -->
         <div class="qw-step is-active" data-step="1">
-          <h3 class="qw-title">What are you interested in?</h3>
-          <p class="qw-sub">Choose one or more — we'll tailor your quote.</p>
-          <div class="qw-products">
-            <button type="button" class="ptile" data-product="solar">
-              <span class="pcheck"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m5 13 4 4L19 7"/></svg></span>
-              <span class="pic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg></span>
-              <span class="pname">Solar panels</span>
-            </button>
-            <button type="button" class="ptile" data-product="battery">
-              <span class="pcheck"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m5 13 4 4L19 7"/></svg></span>
-              <span class="pic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="16" height="10" rx="2"/><path d="M22 10v4M10 10l-2 4h3l-2 3" stroke-linejoin="round"/></svg></span>
-              <span class="pname">Battery storage</span>
-            </button>
-            <button type="button" class="ptile" data-product="heatpump">
-              <span class="pcheck"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m5 13 4 4L19 7"/></svg></span>
-              <span class="pic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="12" cy="12" r="4"/><path d="M12 8v8M8 12h8"/></svg></span>
-              <span class="pname">Heat pump</span>
-            </button>
-            <button type="button" class="ptile" data-product="ev">
-              <span class="pcheck"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m5 13 4 4L19 7"/></svg></span>
-              <span class="pic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 11l1.5-4.5A2 2 0 0 1 8.4 5h7.2a2 2 0 0 1 1.9 1.5L19 11v6a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1v-1H8v1a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1Z"/><path d="M7 14h.01M17 14h.01"/></svg></span>
-              <span class="pname">EV charger</span>
-            </button>
-          </div>
-          <p class="qw-hint" id="qwProdHint" hidden>Please pick at least one.</p>
-          <button type="button" class="btn btn-accent btn-lg qw-next" data-next="2" style="margin-top:10px">Continue →</button>
-          <p class="qw-trust"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Your details are safe · Takes under a minute</p>
-        </div>
-
-        <!-- STEP 2: postcode -->
-        <div class="qw-step" data-step="2">
-          <h3 class="qw-title">Where's the property?</h3>
-          <p class="qw-sub">Enter your postcode and pick your address.</p>
+          <h3 class="qw-title">Compare energy for your home</h3>
+          <p class="qw-sub">Enter your postcode to get started — it takes under a minute.</p>
           <div class="qw-field">
             <label for="qpostcode">Your postcode</label>
             <div class="qw-lookup">
@@ -394,82 +369,44 @@
             </div>
             <p class="qw-lookup-msg" id="qwLookupMsg" hidden></p>
           </div>
+          <button type="button" class="btn btn-accent btn-lg qw-next" data-next="2">Get started →</button>
+          <p class="qw-trust"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Your details are safe · Takes under a minute</p>
+        </div>
+
+        <!-- STEP 2: energy -->
+        <div class="qw-step" data-step="2">
+          <h3 class="qw-title">Your energy</h3>
+          <p class="qw-sub">Two quick details so we can compare the right deals.</p>
+          <div class="qw-field">
+            <label for="qsupplier">Current energy supplier</label>
+            <select id="qsupplier" name="current_supplier">
+              <option value="">Select…</option>
+              <option>British Gas</option><option>Scottish Power</option><option>EDF</option>
+              <option>E.ON Next</option><option>Octopus Energy</option><option>OVO</option>
+              <option>SSE</option><option>Utilita</option><option>Shell Energy</option>
+              <option>So Energy</option><option>Other / not sure</option>
+            </select>
+            <div class="err-msg" data-for="qsupplier">Please choose your supplier.</div>
+          </div>
+          <div class="qw-field">
+            <label for="qspend">Typical monthly energy spend</label>
+            <select id="qspend" name="monthly_bill">
+              <option value="">Select…</option>
+              <option>Under £80</option><option>£80–£120</option><option>£120–£180</option>
+              <option>£180–£250</option><option>Over £250</option>
+            </select>
+            <div class="err-msg" data-for="qspend">Please choose a range.</div>
+          </div>
           <div class="qw-actions">
             <button type="button" class="qw-back" data-back="1">← Back</button>
             <button type="button" class="btn btn-primary btn-lg qw-next" data-next="3">Continue</button>
           </div>
         </div>
 
-        <!-- STEP 3: about your home -->
+        <!-- STEP 3: contact + green opt-ins -->
         <div class="qw-step" data-step="3">
-          <h3 class="qw-title">About your home</h3>
-          <p class="qw-sub">A few quick details so we match the right installer.</p>
-
-          <div class="qw-field">
-            <label for="qowner">Do you own your home?</label>
-            <select id="qowner" name="homeowner">
-              <option value="">Select…</option>
-              <option value="Yes">Yes, I own it</option>
-              <option value="No">No, I rent</option>
-            </select>
-            <div class="err-msg" data-for="qowner">Please let us know.</div>
-          </div>
-
-          <div class="qw-gate" id="qwGate">
-            <b>Thanks for your interest!</b> These upgrades need the property owner's go-ahead, so at the moment we can only help homeowners. If you own another property, or your landlord's on board, do come back to us.
-          </div>
-
-          <div id="qwHomeFields">
-            <div class="qw-field">
-              <label for="qproperty">Property type</label>
-              <select id="qproperty" name="property_type">
-                <option value="">Select…</option>
-                <option>Detached</option><option>Semi-detached</option><option>Terraced</option>
-                <option>Bungalow</option><option>Flat / apartment</option>
-              </select>
-              <div class="err-msg" data-for="qproperty">Please choose your property type.</div>
-            </div>
-
-            <div class="qw-field qw-branch" data-need="solar battery" hidden>
-              <label for="qbill">Typical monthly electricity bill</label>
-              <select id="qbill" name="monthly_bill">
-                <option value="">Select…</option>
-                <option>Under £80</option><option>£80–£120</option><option>£120–£180</option>
-                <option>£180–£250</option><option>Over £250</option>
-              </select>
-              <div class="err-msg" data-for="qbill">Please choose a range.</div>
-            </div>
-
-            <div class="qw-field qw-branch" data-need="heatpump" hidden>
-              <label for="qheating">Current heating type</label>
-              <select id="qheating" name="heating_type">
-                <option value="">Select…</option>
-                <option>Mains gas</option><option>Oil</option><option>LPG</option>
-                <option>Electric</option><option>Other / not sure</option>
-              </select>
-              <div class="err-msg" data-for="qheating">Please choose your heating type.</div>
-            </div>
-
-            <div class="qw-field qw-branch" data-need="ev" hidden>
-              <label for="qparking">Off-street parking (driveway/garage)?</label>
-              <select id="qparking" name="off_street_parking">
-                <option value="">Select…</option>
-                <option>Yes</option><option>No</option>
-              </select>
-              <div class="err-msg" data-for="qparking">Please let us know.</div>
-            </div>
-          </div>
-
-          <div class="qw-actions">
-            <button type="button" class="qw-back" data-back="2">← Back</button>
-            <button type="button" class="btn btn-primary btn-lg qw-next" data-next="4">Continue</button>
-          </div>
-        </div>
-
-        <!-- STEP 4: contact -->
-        <div class="qw-step" data-step="4">
           <h3 class="qw-title">Where shall we call you?</h3>
-          <p class="qw-sub">An advisor will call with your free quote.</p>
+          <p class="qw-sub">An advisor will call with the best deals we can find.</p>
           <div class="qw-field row2">
             <div class="qw-field">
               <label for="qname">First name</label>
@@ -492,13 +429,24 @@
             <input type="email" id="qemail" name="email" autocomplete="email" placeholder="jane@example.com" />
             <div class="err-msg" data-for="qemail">Please enter a valid email address.</div>
           </div>
+
+          <div class="qw-optins">
+            <p class="qw-optins-label">Also interested in a green upgrade? <span class="qw-opt">(optional)</span></p>
+            <div class="qw-chips">
+              <button type="button" class="qchip" data-product="solar">Solar panels</button>
+              <button type="button" class="qchip" data-product="battery">Battery storage</button>
+              <button type="button" class="qchip" data-product="heatpump">Heat pump</button>
+              <button type="button" class="qchip" data-product="ev">EV charger</button>
+            </div>
+          </div>
+
           <label class="consent">
             <input type="checkbox" id="qconsent" name="consent" />
-            <span>I agree to the <a href="#privacy" style="color:var(--brand);text-decoration:underline" onclick="event.preventDefault();event.stopPropagation();openPrivacy()">privacy policy</a> and agree to be contacted via phone from Green Offers' approved <span class="partners-tip" tabindex="0" role="button" aria-label="Approved partners: Scottish Power, British Gas, EDF">partners<span class="partners-pop">Scottish Power<br>British Gas<br>EDF</span></span>.</span>
+            <span>I agree to the <a href="#privacy" style="color:var(--brand);text-decoration:underline" onclick="event.preventDefault();event.stopPropagation();openPrivacy()">privacy policy</a> and agree to be contacted via phone from Green Offers' approved partners: Scottish Power, British Gas and EDF.</span>
           </label>
           <div class="err-msg" data-for="qconsent" style="margin:-6px 0 12px">Please tick to continue.</div>
           <div class="qw-actions">
-            <button type="button" class="qw-back" data-back="3">← Back</button>
+            <button type="button" class="qw-back" data-back="2">← Back</button>
             <button type="submit" class="btn btn-accent btn-lg" id="qwSubmit">Get my quote →</button>
           </div>
           <p class="qw-trust" style="text-align:center">Free · No obligation</p>
@@ -508,7 +456,7 @@
       <div class="qw-success" id="qwSuccess" role="status" aria-live="polite">
         <div class="check"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m5 13 4 4L19 7"/></svg></div>
         <h3>Thanks, <span id="qwName">there</span>!</h3>
-        <p>Your free quote request is in. An advisor will call you shortly on the number you gave us.</p>
+        <p>Your request is in. Expect a call shortly from <strong>Scottish Power</strong> or one of our approved partners, on the number you gave us, to talk through your options.</p>
       </div>
     </div>
   </div>
@@ -529,13 +477,13 @@
   <div class="wrap">
     <div class="section-head reveal">
       <span class="eyebrow">How it works</span>
-      <h2>From enquiry to install, without the legwork.</h2>
-      <p>Tell us what you're after and we match you with the right vetted installer.</p>
+      <h2>Compare, call, and start saving.</h2>
+      <p>Tell us about your energy and we'll compare deals and options for your home.</p>
     </div>
     <div class="steps">
-      <div class="step reveal"><div class="step-no">1</div><h3>Tell us your plans</h3><p>Pick the upgrades you're interested in and share a few quick details about your home. Takes a couple of minutes.</p></div>
-      <div class="step reveal"><div class="step-no">2</div><h3>We match &amp; call</h3><p>An advisor calls to understand your needs and matches you with a suitable vetted installer for your area.</p></div>
-      <div class="step reveal"><div class="step-no">3</div><h3>Get your free quote</h3><p>You receive a no-obligation quote for your upgrade. Happy to proceed? We help arrange the rest.</p></div>
+      <div class="step reveal"><div class="step-no">1</div><h3>Share a few details</h3><p>Your postcode, current supplier and rough monthly spend — and tick any green upgrades you're curious about. Takes under a minute.</p></div>
+      <div class="step reveal"><div class="step-no">2</div><h3>We compare &amp; call</h3><p>An advisor calls to talk through the best energy deals for you — and any green upgrades you flagged.</p></div>
+      <div class="step reveal"><div class="step-no">3</div><h3>Switch &amp; save</h3><p>Happy with what we find? We help you make the switch — and arrange quotes for any upgrades. No obligation.</p></div>
     </div>
   </div>
 </section>
@@ -544,8 +492,8 @@
 <section class="section band-mint" id="upgrades">
   <div class="wrap">
     <div class="section-head center reveal">
-      <span class="eyebrow" style="justify-content:center">What we cover</span>
-      <h2>Four ways to a greener, cheaper home.</h2>
+      <span class="eyebrow" style="justify-content:center">Going greener?</span>
+      <h2>Add a green upgrade while you compare.</h2>
     </div>
     <div class="up-grid">
       <div class="up-card reveal">
@@ -577,7 +525,7 @@
   <div class="wrap">
     <div class="section-head reveal">
       <span class="eyebrow">Why Green Offers</span>
-      <h2>One place for every green upgrade.</h2>
+      <h2>Energy and green upgrades, in one place.</h2>
     </div>
     <div class="why-grid">
       <div class="why reveal"><div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div><h3>Cut your energy bills</h3><p>Generating, storing and using your own energy means buying less from the grid — the reason most people start.</p></div></div>
@@ -588,20 +536,26 @@
   </div>
 </section>
 
-<!-- ACCREDITATION -->
+<!-- PARTNERS & STANDARDS -->
 <section class="section band-mint">
   <div class="wrap">
     <div class="section-head center reveal" style="margin-bottom:26px">
-      <span class="eyebrow" style="justify-content:center">Standards we look for</span>
-      <h2>Work done properly, by accredited installers.</h2>
+      <span class="eyebrow" style="justify-content:center">Our partners &amp; standards</span>
+      <h2>Trusted suppliers, accredited installers.</h2>
     </div>
+    <div class="chips reveal">
+      <span class="chip">Scottish Power</span>
+      <span class="chip">British Gas</span>
+      <span class="chip">EDF</span>
+    </div>
+    <p class="sup-note reveal" style="margin-bottom:24px">Our approved energy partners may contact you about switching — <strong>Scottish Power</strong> is our principal energy partner.</p>
     <div class="chips reveal">
       <span class="chip">MCS Certified</span>
       <span class="chip">TrustMark</span>
       <span class="chip">RECC</span>
       <span class="chip">HIES</span>
     </div>
-    <p class="sup-note reveal">Accreditations shown are industry standards we look for in our installer partners. Green Offers is a lead-generation service and does not carry out installations.</p>
+    <p class="sup-note reveal">Accreditations we look for in our installer partners. Green Offers is a comparison and lead-generation service — it does not supply energy or carry out installations.</p>
   </div>
 </section>
 
@@ -621,8 +575,8 @@
   <div class="wrap">
     <div class="section-head center reveal"><span class="eyebrow" style="justify-content:center">Good to know</span><h2>Frequently asked questions</h2></div>
     <div class="faq">
-      <div class="faq-item"><button class="faq-q">Is Green Offers really free?<span class="pm">+</span></button><div class="faq-a"><p>Yes. Getting a quote through us is completely free and there's no obligation to go ahead.</p></div></div>
-      <div class="faq-item"><button class="faq-q">Do I need to own my home?<span class="pm">+</span></button><div class="faq-a"><p>For now, yes. These upgrades are fixed to the property, so they need the owner's authorisation. If you rent, you'd need your landlord's agreement first.</p></div></div>
+      <div class="faq-item"><button class="faq-q">Is Green Offers really free?<span class="pm">+</span></button><div class="faq-a"><p>Yes. Comparing your energy and getting quotes through us is completely free, with no obligation to go ahead.</p></div></div>
+      <div class="faq-item"><button class="faq-q">Do I need to own my home?<span class="pm">+</span></button><div class="faq-a"><p>Not to compare or switch energy — anyone can do that. Green upgrades like solar or a heat pump do need the property owner's go-ahead, so if you rent you'd need your landlord's agreement for those.</p></div></div>
       <div class="faq-item"><button class="faq-q">Can solar really cut my bills?<span class="pm">+</span></button><div class="faq-a"><p>Solar lets you use electricity you've generated yourself instead of buying it from the grid, and you can be paid for any surplus you export. Your actual saving depends on your home, usage and tariff — an advisor will talk you through what's realistic for you.</p></div></div>
       <div class="faq-item"><button class="faq-q">Are there grants for heat pumps?<span class="pm">+</span></button><div class="faq-a"><p>Government support schemes exist for measures like heat pumps, and eligibility and amounts change over time. We'll explain what you may be eligible for based on your home and where you live.</p></div></div>
       <div class="faq-item"><button class="faq-q">Do you carry out the installation?<span class="pm">+</span></button><div class="faq-a"><p>No — we match you with vetted, accredited installers. Green Offers is a lead-generation and matching service, not an installer.</p></div></div>
@@ -681,11 +635,11 @@
     <div class="foot-grid">
       <div>
         <a href="#top" class="logo"><span class="mark" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C7 7 6 11 8 15a6 6 0 0 0 8 0c2-4 1-8-4-13Z"/></svg></span>Green <b>Offers</b></a>
-        <p class="foot-about">Free quotes on solar, batteries, heat pumps and EV charging for UK homeowners — from vetted installers.</p>
+        <p class="foot-about">Compare energy and green home upgrades for UK households — free, no obligation, advisor-guided.</p>
       </div>
-      <div class="foot-col"><h4>Upgrades</h4><a href="#upgrades">Solar panels</a><a href="#upgrades">Battery storage</a><a href="#upgrades">Heat pumps</a><a href="#upgrades">EV charging</a></div>
-      <div class="foot-col"><h4>Company</h4><a href="#how">How it works</a><a href="#why">Why us</a><a href="#faq">FAQs</a><a href="#quote">Get a quote</a></div>
-      <div class="foot-col"><h4>Legal</h4><a href="#privacy">Privacy policy</a><a href="#">Cookie policy</a><a href="#">Terms of use</a></div>
+      <div class="foot-col"><h4>Upgrades</h4><a href="/solar">Solar panels</a><a href="/battery-storage">Battery storage</a><a href="/heat-pumps">Heat pumps</a><a href="/ev-charging">EV charging</a></div>
+      <div class="foot-col"><h4>Company</h4><a href="/about">About us</a><a href="/how-it-works">How it works</a><a href="/contact">Contact</a><a href="#faq">FAQs</a></div>
+      <div class="foot-col"><h4>Legal</h4><a href="/privacy">Privacy policy</a><a href="/cookies">Cookie policy</a><a href="/terms">Terms of use</a></div>
     </div>
     <div class="foot-bottom">
       <p class="reg">Green Offers is a trading name of Interactive Results Limited, a company registered in Scotland (No.&nbsp;SC487971), ICO registration ZA085098. &copy; <span id="yr"></span> Interactive Results Limited. All rights reserved.</p>
@@ -745,9 +699,10 @@
   const qStepLabel = document.getElementById('qwStepLabel');
   const qSuccess = document.getElementById('qwSuccess');
   const qSubmit = document.getElementById('qwSubmit');
-  const TOTAL_STEPS = 4;
+  const TOTAL_STEPS = 3;
   let curStep = 1;
 
+  // green upgrade opt-ins (optional)
   const PRODUCT_LABELS = { solar:'Solar panels', battery:'Battery storage', heatpump:'Heat pump', ev:'EV charger' };
   const selectedProducts = new Set();
 
@@ -759,89 +714,46 @@
   const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const phoneRe = /^(?:0|\+?44)[\d\s()-]{8,}$/;
 
-  // product tiles
-  document.querySelectorAll('.ptile').forEach(t=>{
-    t.addEventListener('click', ()=>{
-      const p = t.dataset.product;
-      if(selectedProducts.has(p)){ selectedProducts.delete(p); t.classList.remove('selected'); }
-      else { selectedProducts.add(p); t.classList.add('selected'); }
-      document.getElementById('qwProdHint').hidden = selectedProducts.size > 0;
+  // opt-in chips (toggle, no validation — optional)
+  document.querySelectorAll('.qchip').forEach(c=>{
+    c.addEventListener('click', ()=>{
+      const p = c.dataset.product;
+      if(selectedProducts.has(p)){ selectedProducts.delete(p); c.classList.remove('selected'); }
+      else { selectedProducts.add(p); c.classList.add('selected'); }
     });
   });
 
-  // pre-select product(s) from the URL (?product=solar) for ad message-match
+  // pre-tick an opt-in from the URL (?product=solar) for ad message-match
   (function(){
     const raw = new URLSearchParams(location.search).get('product') || new URLSearchParams(location.search).get('products') || '';
     const alias = { solar:'solar', pv:'solar', battery:'battery', storage:'battery',
                     heatpump:'heatpump', 'heat-pump':'heatpump', heat_pump:'heatpump', ashp:'heatpump',
                     ev:'ev', evcharger:'ev', 'ev-charger':'ev', charger:'ev' };
-    const picked = raw.split(',').map(s=>alias[s.trim().toLowerCase()]).filter(Boolean);
-    if(!picked.length) return;
-    picked.forEach(code=>{
+    raw.split(',').map(s=>alias[s.trim().toLowerCase()]).filter(Boolean).forEach(code=>{
       selectedProducts.add(code);
-      const tile = document.querySelector('.ptile[data-product="'+code+'"]');
-      if(tile) tile.classList.add('selected');
+      const chip = document.querySelector('.qchip[data-product="'+code+'"]');
+      if(chip) chip.classList.add('selected');
     });
-    const hint = document.getElementById('qwProdHint'); if(hint) hint.hidden = true;
-    // tailor the hero to match the ad when a single product is specified
-    if(picked.length === 1){
-      const H = {
-        solar:    { t:'Cut your bills with <em>solar panels</em>.', l:'Free, no-obligation solar quotes from vetted installers — with a real advisor to guide you.' },
-        battery:  { t:'Store your energy with a <em>home battery</em>.', l:'Free, no-obligation battery storage quotes from vetted installers — with a real advisor to guide you.' },
-        heatpump: { t:'A warmer home with a <em>heat pump</em>.', l:'Free, no-obligation heat pump quotes from vetted installers — you may qualify for a government grant.' },
-        ev:       { t:'Charge your EV at home for <em>less</em>.', l:'Free, no-obligation EV charger quotes from vetted installers — with a real advisor to guide you.' }
-      }[picked[0]];
-      const ht = document.getElementById('heroTitle'); const hl = document.getElementById('heroLead');
-      if(H && ht) ht.innerHTML = H.t;
-      if(H && hl) hl.textContent = H.l;
-    }
   })();
-
-  // show/hide branch fields for step 3 based on chosen products
-  function syncBranchFields(){
-    document.querySelectorAll('.qw-branch').forEach(f=>{
-      const need = (f.dataset.need||'').split(' ');
-      f.hidden = !need.some(n=>selectedProducts.has(n));
-    });
-  }
-
-  // homeowner gate
-  const ownerSel = document.getElementById('qowner');
-  const gate = document.getElementById('qwGate');
-  const homeFields = document.getElementById('qwHomeFields');
-  ownerSel.addEventListener('change', ()=>{
-    setErr('qowner', false);
-    if(ownerSel.value === 'No'){ gate.classList.add('show'); homeFields.style.display='none'; }
-    else { gate.classList.remove('show'); homeFields.style.display=''; }
-  });
 
   function showStep(n){
     qForm.querySelectorAll('.qw-step').forEach(s=>s.classList.toggle('is-active', Number(s.dataset.step)===n));
     curStep = n;
     qBar.style.width = (n/TOTAL_STEPS*100)+'%';
     qStepLabel.textContent = `Step ${n} of ${TOTAL_STEPS}`;
-    if(n===3) syncBranchFields();
     const active = qForm.querySelector('.qw-step.is-active');
     const first = active && active.querySelector('input,select');
     if(first && n!==1) setTimeout(()=>{ try{first.focus({preventScroll:true});}catch(_){}} ,60);
   }
 
   function validateStep(n){
-    if(n===1){ const ok = selectedProducts.size>0; document.getElementById('qwProdHint').hidden = ok; return ok; }
-    if(n===2){ const ok = val('qpostcode').length>1; setErr('qpostcode',!ok); return ok; }
-    if(n===3){
-      const owner = val('qowner')!==''; setErr('qowner',!owner);
-      if(val('qowner')==='No') return false; // homeowners only
-      const prop = val('qproperty')!==''; setErr('qproperty',!prop);
-      let branchOk = true;
-      document.querySelectorAll('.qw-branch').forEach(f=>{
-        if(f.hidden) return;
-        const sel = f.querySelector('select');
-        const good = sel.value!==''; setErr(sel.id,!good); if(!good) branchOk=false;
-      });
-      return owner && prop && branchOk;
+    if(n===1){ const ok = val('qpostcode').length>1; setErr('qpostcode',!ok); return ok; }
+    if(n===2){
+      const s = val('qsupplier')!==''; setErr('qsupplier',!s);
+      const sp = val('qspend')!==''; setErr('qspend',!sp);
+      return s && sp;
     }
-    if(n===4){
+    if(n===3){
       const name=val('qname').length>0; setErr('qname',!name);
       const lname=val('qlname').length>0; setErr('qlname',!lname);
       const phone=phoneRe.test(val('qphone')); setErr('qphone',!phone);
@@ -861,8 +773,7 @@
   });
   qForm.querySelectorAll('input,select').forEach(el=>{ el.addEventListener('input',()=>setErr(el.id,false)); el.addEventListener('change',()=>setErr(el.id,false)); });
 
-  // address lookup — calls our own Worker (/api/address), which proxies to the
-  // GoAddress worker server-side, so there's no browser CORS to trip over.
+  // address lookup — calls our own Worker (/api/address), which proxies to the GoAddress worker
   const ADDRESS_LOOKUP_URL = '/api/address';
   const qwFind=document.getElementById('qwFind');
   const qAddrWrap=document.getElementById('qwAddrWrap');
@@ -870,8 +781,6 @@
   const qLookupMsg=document.getElementById('qwLookupMsg');
   let addrResults=[]; let selectedAddress={line1:'',line2:'',town:''};
   function showLookupMsg(t){ if(!t){qLookupMsg.hidden=true;qLookupMsg.textContent='';return;} qLookupMsg.hidden=false; qLookupMsg.textContent=t; }
-
-  // turn one GoAddress record into line1 / line2 / town / postcode
   function mapAddress(a){
     const flat=(a.flat||'').toString().trim();
     const building=(a.building_name||'').trim();
@@ -885,7 +794,6 @@
     if(!line1) line1=(a.raw_address||a.address||'').trim();
     return { line1, line2, town:(a.post_town||a.city||a.town||'').trim(), postcode:(a.postcode||'').trim() };
   }
-
   async function findAddresses(){
     const pc=val('qpostcode'); if(pc.length<5){ setErr('qpostcode',true); return; }
     setErr('qpostcode',false); showLookupMsg('');
@@ -924,12 +832,9 @@
 
   function collectLead(){
     return {
+      current_supplier: val('qsupplier'),
+      monthlyBill:      val('qspend'),
       product_interest: Array.from(selectedProducts).map(p=>PRODUCT_LABELS[p]).join(', '),
-      homeowner:    val('qowner'),
-      propertyType: val('qproperty'),
-      monthlyBill:  val('qbill'),
-      heatingType:  val('qheating'),
-      offStreetParking: val('qparking'),
       firstName:    val('qname'),
       lastName:     val('qlname'),
       phone:        val('qphone').replace(/\s+/g,''),
@@ -952,7 +857,7 @@
 
   qForm.addEventListener('submit', async (e)=>{
     e.preventDefault();
-    if(!validateStep(4)){
+    if(!validateStep(3)){
       const fe=qForm.querySelector('.qw-step.is-active .err, .qw-step.is-active .err-msg.show');
       if(fe) fe.scrollIntoView({behavior:reduceMotion?'auto':'smooth',block:'center'});
       return;

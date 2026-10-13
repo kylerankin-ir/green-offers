@@ -1,15 +1,23 @@
+/**
+ * Green Offers — single Worker that serves BOTH the static site and the API.
+ * Static files are served via the ASSETS binding; /api/* is handled here.
+ */
 const LEADBYTE_URL  = 'https://interactive.leadbyte.co.uk/api/submit.php?campid=SOLARLEADS&returnjson=yes';
 const GOADDRESS_URL = 'https://goaddress-proxy.kyle-rankin.workers.dev/';
 
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+
     if (url.pathname === '/api/address') return handleAddress(url);
+
     if (url.pathname === '/api/lead') {
       if (request.method !== 'POST') return json({ code: 0, response: 'Method not allowed — use POST' }, 405);
       return handleLead(request);
     }
-    return env.ASSETS.fetch(request); // static site
+
+    // everything else → the static site (index.html, etc.)
+    return env.ASSETS.fetch(request);
   },
 };
 
@@ -29,8 +37,10 @@ async function handleLead(request) {
   let data;
   try { data = await request.json(); }
   catch (_) { return json({ code: 0, response: 'Bad request (invalid JSON)' }, 400); }
+
   const params = new URLSearchParams();
   const set = (k, v) => { if (v != null && String(v).trim() !== '') params.set(k, String(v).trim()); };
+
   set('firstname', data.firstName);
   set('lastname',  data.lastName);
   set('postcode',  (data.postcode || '').toUpperCase());
@@ -41,16 +51,21 @@ async function handleLead(request) {
   set('towncity',  data.towncity);
   set('optinurl',  data.pageUrl);
   set('optindate', data.optinDate);
+
   set('product_interest',   data.product_interest);
+  set('current_supplier',   data.current_supplier);
   set('homeowner',          data.homeowner);
   set('property_type',      data.propertyType);
   set('monthly_bill',       data.monthlyBill);
   set('heating_type',       data.heatingType);
   set('off_street_parking', data.offStreetParking);
+
   ['sid','utm_source','utm_medium','utm_campaign','utm_term','utm_content','gclid','fbclid','clickid','aff_id']
     .forEach((k) => set(k, data[k]));
+
   set('ip',        request.headers.get('CF-Connecting-IP') || '');
   set('useragent', request.headers.get('User-Agent') || '');
+
   try {
     const lbRes = await fetch(LEADBYTE_URL, {
       method: 'POST',
